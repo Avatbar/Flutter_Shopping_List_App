@@ -22,12 +22,16 @@ class _NewItemState extends State<NewItem> {
           child: Column(
             children: [
               TextFormField(
+                maxLength: 20,
                 decoration: const InputDecoration(
                   labelText: 'Name',
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
+                  if (value == null ||
+                      value.isEmpty ||
+                      value.trim().length <= 1 ||
+                      value.trim().length > 20) {
+                    return 'Please enter a name with 2-20 characters';
                   }
                   return null;
                 },
@@ -43,8 +47,11 @@ class _NewItemState extends State<NewItem> {
                       keyboardType: TextInputType.number,
                       initialValue: '1',
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a quantity';
+                        if (value == null ||
+                            value.isEmpty ||
+                            int.tryParse(value) == null ||
+                            int.parse(value) <= 0) {
+                          return 'Please enter a quantity greater than 0';
                         }
                         return null;
                       },
@@ -53,9 +60,7 @@ class _NewItemState extends State<NewItem> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: DropdownButtonFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Category',
-                      ),
+
                       items: [
                         for (final category in categories.entries)
                           DropdownMenuItem(
@@ -76,6 +81,14 @@ class _NewItemState extends State<NewItem> {
                       onChanged: (value) {},
                     ),
                   ),
+                ]
+              ),
+              const SizedBox(height: 16),
+              Row (
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(onPressed: () {}, child: const Text('Reset')),
+                  ElevatedButton(onPressed: () {}, child: const Text('Save')),
                 ]
               )
 
