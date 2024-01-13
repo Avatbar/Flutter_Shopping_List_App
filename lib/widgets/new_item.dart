@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_shopping_list_app/models/grocery_item.dart';
 import 'package:http/http.dart' as http;
 
 import '../data/categories.dart';
@@ -18,10 +19,14 @@ class _NewItemState extends State<NewItem> {
   var _name = '';
   var _quantity = 1;
   var _category = categories[Categories.fruit]!;
+  var _isSending = false;
 
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+      setState(() {
+        _isSending = true;
+      });
       final url = Uri.https(
           'flutter-shoping-list-d2f1c-default-rtdb.firebaseio.com',
           '/items.json');
@@ -37,8 +42,14 @@ class _NewItemState extends State<NewItem> {
         }),
       );
 
+      final Map<String, dynamic> resData = json.decode(httpResponse.body);
+
       if (httpResponse.statusCode == 200) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(GroceryItem(
+            id: resData["name"],
+            name: _name,
+            quantity: _quantity,
+            category: _category));
       }
     }
   }
@@ -126,12 +137,21 @@ class _NewItemState extends State<NewItem> {
                 const SizedBox(height: 16),
                 Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                   TextButton(
-                      onPressed: () {
-                        _formKey.currentState!.reset();
-                      },
+                      onPressed: _isSending
+                          ? null
+                          : () {
+                              _formKey.currentState!.reset();
+                            },
                       child: const Text('Reset')),
                   ElevatedButton(
-                      onPressed: _saveItem, child: const Text('Save')),
+                      onPressed: _isSending ? null : _saveItem,
+                      child: _isSending
+                          ? const SizedBox(
+                              height: 16,
+                              width: 16,
+                              child: CircularProgressIndicator(),
+                            )
+                          : const Text('Save')),
                 ])
               ],
             ),
