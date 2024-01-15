@@ -76,10 +76,36 @@ class _GroceryListState extends State<GroceryList> {
     }
   }
 
-  void _deleteItem(String id) {
+  void _deleteItem(GroceryItem item) async {
+    final url = Uri.https(
+        'flutter-shoping-list-d2f1c-default-rtdb.firebaseio.com',
+        '/items/${item.id}.json');
+    final index = _groceryItems.indexOf(item);
+
     setState(() {
-      _groceryItems.removeWhere((item) => item.id == id);
+      _groceryItems.remove(item);
     });
+
+    final response = await http.delete(url);
+
+    if (response.statusCode >= 400) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete ${item.name}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      setState(() {
+        _groceryItems.insert(index, item);
+      });
+    } else if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${item.name} deleted'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
@@ -98,7 +124,7 @@ class _GroceryListState extends State<GroceryList> {
             return Dismissible(
               key: ValueKey(item.id),
               onDismissed: (direction) {
-                _deleteItem(item.id);
+                _deleteItem(item);
               },
               background: Container(
                 color: Theme.of(context).colorScheme.error,
