@@ -17,6 +17,7 @@ class GroceryList extends StatefulWidget {
 class _GroceryListState extends State<GroceryList> {
   List<GroceryItem> _groceryItems = [];
   var _isLoading = true;
+  String _error = '';
 
   @override
   void initState() {
@@ -28,6 +29,7 @@ class _GroceryListState extends State<GroceryList> {
     final url = Uri.https(
         'flutter-shoping-list-d2f1c-default-rtdb.firebaseio.com',
         '/items.json');
+    // final url = Uri.parse('https://abc.firebaseio.com/items.json'); // Bad url for testing
     final httpResponse = await http.get(url);
     print(httpResponse.body);
 
@@ -50,6 +52,13 @@ class _GroceryListState extends State<GroceryList> {
         _groceryItems = loadedItems;
         _isLoading = false;
       });
+    } else if (httpResponse.statusCode >= 400) {
+      setState(() {
+        _isLoading = false;
+        _error = 'Failed to load items';
+      });
+    } else {
+      throw Exception('Failed to load items');
     }
   }
 
@@ -115,6 +124,22 @@ class _GroceryListState extends State<GroceryList> {
               ),
             );
           });
+    }
+
+    if (_error.isNotEmpty) {
+      content = Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(_error),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _loadItems,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
     }
 
     return Scaffold(
